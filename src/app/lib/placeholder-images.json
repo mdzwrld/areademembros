@@ -1,0 +1,53 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "discord-nitro",
+      "description": "Discord Nitro services",
+      "imageUrl": "https://picsum.photos/seed/nitro/400/250",
+      "imageHint": "discord nitro"
+    },
+    {
+      "id": "tiktok-shop",
+      "description": "TikTok Shop accounts",
+      "imageUrl": "https://picsum.photos/seed/tiktok/400/250",
+      "imageHint": "tiktok shop"
+    },
+    {
+      "id": "gaming-currency",
+      "description": "Game currency points",
+      "imageUrl": "https://picsum.photos/seed/gaming/400/250",
+      "imageHint": "video games"
+    },
+    {
+      "id": "roblox",
+      "description": "Roblox products",
+      "imageUrl": "https://picsum.photos/seed/roblox/400/250",
+      "imageHint": "roblox blocks"
+    },
+    {
+      "id": "steam",
+      "description": "Steam keys and accounts",
+      "imageUrl": "https://picsum.photos/seed/steam/400/250",
+      "imageHint": "steam platform"
+    },
+    {
+      "id": "streaming",
+      "description": "Streaming subscriptions",
+      "imageUrl": "https://picsum.photos/seed/streaming/400/250",
+      "imageHint": "movie streaming"
+    },
+    {
+      "id": "game-accounts",
+      "description": "Premium game accounts",
+      "imageUrl": "https://picsum.photos/seed/accounts/400/250",
+      "imageHint": "account security"
+    },
+    {
+      "id": "supercell",
+      "description": "Supercell games",
+      "imageUrl": "https://picsum.photos/seed/supercell/400/250",
+      "imageHint": "clash royale"
+    }
+  ]
+}
