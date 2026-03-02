@@ -8,22 +8,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { LockKeyhole } from "lucide-react";
+import { LockKeyhole, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const { settings } = useStore();
   const { toast } = useToast();
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === settings.adminPassword) {
+    if (username === settings.adminUser && password === settings.adminPassword) {
       localStorage.setItem("ldr_admin_auth", "true");
       router.push("/admin");
     } else {
-      toast({ title: "Senha inválida", description: "Senha de administrador incorreta.", variant: "destructive" });
+      toast({ 
+        title: "Credenciais inválidas", 
+        description: "Usuário ou senha de administrador incorretos.", 
+        variant: "destructive" 
+      });
     }
   };
 
@@ -40,13 +45,27 @@ export default function AdminLoginPage() {
         <CardContent>
           <form onSubmit={handleAdminLogin} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="user" className="flex items-center gap-2">
+                <User className="h-4 w-4" /> Usuário Admin
+              </Label>
+              <Input 
+                id="user" 
+                type="text" 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Nome de usuário"
+                required
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="pass">Senha Admin</Label>
               <Input 
                 id="pass" 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Insira a senha mestra"
+                placeholder="Sua senha mestra"
+                required
               />
             </div>
             <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold">

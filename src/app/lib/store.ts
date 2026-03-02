@@ -12,12 +12,14 @@ export interface Video {
 
 export interface Settings {
   globalPassword: string;
+  adminUser: string;
   adminPassword: string;
 }
 
 export const INITIAL_SETTINGS: Settings = {
   globalPassword: "123456",
-  adminPassword: "admin",
+  adminUser: "midsz",
+  adminPassword: "012706",
 };
 
 export const INITIAL_VIDEOS: Video[] = [
