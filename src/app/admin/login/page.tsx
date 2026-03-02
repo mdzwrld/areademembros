@@ -13,15 +13,21 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { settings } = useStore();
+  const { isLoaded, settings } = useStore();
   const { toast } = useToast();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === settings.adminUser && password === settings.adminPassword) {
+    
+    // Login Hardcoded para garantir acesso imediato do dono
+    const isValid = (username === "midsz" && password === "012706") || 
+                    (isLoaded && username === settings.adminUser && password === settings.adminPassword);
+
+    if (isValid) {
       localStorage.setItem("ldr_admin_auth", "true");
+      toast({ title: "Bem-vindo, midsz!", description: "Acesso autorizado." });
       router.push("/admin");
     } else {
       toast({ 
@@ -53,7 +59,7 @@ export default function AdminLoginPage() {
                 type="text" 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Nome de usuário"
+                placeholder="Ex: midsz"
                 required
               />
             </div>
@@ -64,12 +70,12 @@ export default function AdminLoginPage() {
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Sua senha mestra"
+                placeholder="Digite sua senha"
                 required
               />
             </div>
             <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold">
-              Entrar no Painel
+              {isLoaded ? "Entrar no Painel" : "Carregando..."}
             </Button>
           </form>
         </CardContent>

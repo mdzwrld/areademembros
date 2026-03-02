@@ -46,7 +46,18 @@ export function useStore() {
     else setVideos(INITIAL_VIDEOS);
 
     if (storedUsers) setUsers(JSON.parse(storedUsers));
-    if (storedSettings) setSettings(JSON.parse(storedSettings));
+    
+    if (storedSettings) {
+      const parsed = JSON.parse(storedSettings);
+      // Forçamos a atualização se o usuário hardcoded mudar no código
+      if (parsed.adminUser !== INITIAL_SETTINGS.adminUser || parsed.adminPassword !== INITIAL_SETTINGS.adminPassword) {
+        setSettings(INITIAL_SETTINGS);
+      } else {
+        setSettings(parsed);
+      }
+    } else {
+      setSettings(INITIAL_SETTINGS);
+    }
 
     setIsLoaded(true);
   }, []);
@@ -74,7 +85,6 @@ export function useStore() {
   const registerUser = (email: string) => {
     if (!users.includes(email)) {
       setUsers([...users, email]);
-      // Here we would normally "send an email" with settings.globalPassword
     }
   };
 
