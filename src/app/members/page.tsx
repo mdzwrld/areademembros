@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PromoCards } from "@/components/promo-cards";
 import { LogOut, ExternalLink, PlayCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
 export default function MembersPage() {
   const router = useRouter();
@@ -111,8 +112,11 @@ export default function MembersPage() {
         <PromoCards />
       </div>
 
-      <footer className="py-8 border-t border-border/40 text-center text-muted-foreground text-xs">
+      <footer className="py-8 border-t border-border/40 text-center text-muted-foreground text-xs flex flex-col items-center gap-2">
         <p>© 2024 Lucro Discord Rápido. Todos os direitos reservados.</p>
+        <Link href="/admin/login" className="text-muted-foreground/30 hover:text-primary transition-colors">
+          Painel Admin
+        </Link>
       </footer>
     </div>
   );

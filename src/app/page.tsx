@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { ShieldCheck, Mail, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -109,8 +110,11 @@ export default function LoginPage() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center border-t border-border/50 pt-4">
+        <CardFooter className="flex flex-col gap-2 justify-center border-t border-border/50 pt-4">
           <p className="text-xs text-muted-foreground">© 2024 Lucro Discord Rápido. Todos os direitos reservados.</p>
+          <Link href="/admin/login" className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors">
+            Acesso Administrativo
+          </Link>
         </CardFooter>
       </Card>
     </main>
