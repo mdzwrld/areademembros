@@ -17,7 +17,7 @@ export interface Settings {
 }
 
 export const INITIAL_SETTINGS: Settings = {
-  globalPassword: "123456",
+  globalPassword: "Dc2026gp",
   adminUser: "midsz",
   adminPassword: "012706",
 };
@@ -49,8 +49,12 @@ export function useStore() {
     
     if (storedSettings) {
       const parsed = JSON.parse(storedSettings);
-      // Forçamos a atualização se o usuário hardcoded mudar no código
-      if (parsed.adminUser !== INITIAL_SETTINGS.adminUser || parsed.adminPassword !== INITIAL_SETTINGS.adminPassword) {
+      // Forçamos a atualização se as credenciais mestras mudarem no código
+      if (
+        parsed.adminUser !== INITIAL_SETTINGS.adminUser || 
+        parsed.adminPassword !== INITIAL_SETTINGS.adminPassword ||
+        parsed.globalPassword === "123456" // Reseta se ainda estiver na senha antiga de exemplo
+      ) {
         setSettings(INITIAL_SETTINGS);
       } else {
         setSettings(parsed);

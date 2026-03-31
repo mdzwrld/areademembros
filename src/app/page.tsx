@@ -37,19 +37,20 @@ export default function LoginPage() {
       return;
     }
 
+    // Se o usuário tentar entrar sem senha, mostramos um aviso útil
     if (password === "") {
-      // First step: Register the user if they don't have a password input yet
-      registerUser(email);
       toast({ 
-        title: "Registro automático realizado!", 
-        description: `A senha padrão global é: ${settings.globalPassword}. Por favor, use-a para entrar.`, 
+        title: "Senha necessária", 
+        description: "Por favor, insira a senha de acesso para continuar.", 
       });
       setLoading(false);
       return;
     }
 
     if (password === settings.globalPassword) {
+      registerUser(email); // Registra o email no sistema
       localStorage.setItem("ldr_auth", JSON.stringify({ email }));
+      toast({ title: "Acesso autorizado!", description: "Bem-vindo à área de membros." });
       router.push("/members");
     } else {
       toast({ title: "Senha incorreta", description: "A senha inserida não é válida.", variant: "destructive" });
@@ -99,11 +100,9 @@ export default function LoginPage() {
                 placeholder="Insira sua senha" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
                 className="bg-background/50"
               />
-              <p className="text-[10px] text-muted-foreground mt-1">
-                Primeira vez? Insira o email, clique em entrar e você receberá a senha padrão.
-              </p>
             </div>
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 font-bold" disabled={loading}>
               {loading ? "Processando..." : "Entrar Agora"}
