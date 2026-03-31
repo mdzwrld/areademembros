@@ -1,26 +1,29 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useStore, Video } from "@/app/lib/store";
+import { useStore, Video, Product } from "@/app/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, Edit3, Save, Sparkles, Users, Video as VideoIcon, Settings as SettingsIcon, LogOut } from "lucide-react";
+import { Plus, Trash2, Edit3, Save, Sparkles, Users, Video as VideoIcon, Settings as SettingsIcon, LogOut, ShoppingBag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { suggestVideoLinks } from "@/ai/flows/admin-video-link-suggester";
 
 export default function AdminPage() {
   const router = useRouter();
-  const { isLoaded, videos, users, settings, addVideo, updateVideo, removeVideo, updateGlobalPassword } = useStore();
+  const { isLoaded, videos, products, users, settings, addVideo, updateVideo, removeVideo, addProduct, updateProduct, removeProduct, updateGlobalPassword } = useStore();
   const { toast } = useToast();
 
   const [editingVideo, setEditingVideo] = useState<Video | null>(null);
   const [newVideo, setNewVideo] = useState({ title: "", youtubeUrl: "", necessaryLinks: "" });
+  
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [newProduct, setNewProduct] = useState({ title: "", description: "", checkoutUrl: "", imageHint: "discord" });
+
   const [globalPass, setGlobalPass] = useState("");
   const [suggesting, setSuggesting] = useState(false);
 
@@ -49,6 +52,22 @@ export default function AdminPage() {
     updateVideo(editingVideo.id, editingVideo);
     setEditingVideo(null);
     toast({ title: "Vídeo atualizado!" });
+  };
+
+  const handleAddProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProduct.title || !newProduct.checkoutUrl) return;
+    addProduct(newProduct);
+    setNewProduct({ title: "", description: "", checkoutUrl: "", imageHint: "discord" });
+    toast({ title: "Produto adicionado com sucesso!" });
+  };
+
+  const handleUpdateProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    updateProduct(editingProduct.id, editingProduct);
+    setEditingProduct(null);
+    toast({ title: "Produto atualizado!" });
   };
 
   const handleUpdatePass = () => {
@@ -88,14 +107,17 @@ export default function AdminPage() {
 
       <main className="max-w-6xl mx-auto p-6">
         <Tabs defaultValue="videos" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-card border border-border">
-            <TabsTrigger value="videos" className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground">
+          <TabsList className="grid w-full grid-cols-4 bg-card border border-border">
+            <TabsTrigger value="videos">
               <VideoIcon className="h-4 w-4 mr-2" /> Vídeos
             </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground">
+            <TabsTrigger value="products">
+              <ShoppingBag className="h-4 w-4 mr-2" /> Produtos
+            </TabsTrigger>
+            <TabsTrigger value="users">
               <Users className="h-4 w-4 mr-2" /> Usuários
             </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground">
+            <TabsTrigger value="settings">
               <SettingsIcon className="h-4 w-4 mr-2" /> Configurações
             </TabsTrigger>
           </TabsList>
@@ -104,7 +126,7 @@ export default function AdminPage() {
             <Card className="border-border bg-card">
               <CardHeader>
                 <CardTitle className="font-headline">Adicionar Novo Vídeo</CardTitle>
-                <CardDescription>Preencha os dados abaixo para publicar um novo conteúdo na área de membros.</CardDescription>
+                <CardDescription>Preencha os dados abaixo para publicar um novo conteúdo.</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleAddVideo} className="space-y-4">
@@ -157,7 +179,7 @@ export default function AdminPage() {
             <div className="grid grid-cols-1 gap-4">
               <h3 className="text-lg font-headline font-bold">Vídeos Existentes</h3>
               {videos.map(video => (
-                <Card key={video.id} className="border-border bg-card overflow-hidden">
+                <Card key={video.id} className="border-border bg-card">
                   <CardContent className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="flex items-center gap-4">
                       <div className="bg-muted p-2 rounded">
@@ -173,6 +195,84 @@ export default function AdminPage() {
                         <Edit3 className="h-4 w-4" />
                       </Button>
                       <Button variant="destructive" size="sm" onClick={() => removeVideo(video.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="products" className="space-y-6">
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle className="font-headline">Adicionar Novo Produto (Fornecedor)</CardTitle>
+                <CardDescription>Crie um card de oferta com link direto para o checkout.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleAddProduct} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Título do Produto</Label>
+                      <Input 
+                        value={newProduct.title} 
+                        onChange={(e) => setNewProduct({ ...newProduct, title: e.target.value })} 
+                        placeholder="Ex: Nitro Trimensal"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Link do Checkout</Label>
+                      <Input 
+                        value={newProduct.checkoutUrl} 
+                        onChange={(e) => setNewProduct({ ...newProduct, checkoutUrl: e.target.value })} 
+                        placeholder="https://pay.exemplo.com/..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Palavra-chave para Imagem (IA)</Label>
+                      <Input 
+                        value={newProduct.imageHint} 
+                        onChange={(e) => setNewProduct({ ...newProduct, imageHint: e.target.value })} 
+                        placeholder="Ex: nitro, gaming, shop"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Descrição curta</Label>
+                    <Textarea 
+                      value={newProduct.description} 
+                      onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} 
+                      placeholder="Destaque as principais vantagens"
+                      rows={3}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
+                    <Plus className="h-4 w-4 mr-2" /> Adicionar Produto
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 gap-4">
+              <h3 className="text-lg font-headline font-bold">Produtos Existentes</h3>
+              {products.map(product => (
+                <Card key={product.id} className="border-border bg-card">
+                  <CardContent className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-muted p-2 rounded">
+                        <ShoppingBag className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-bold">{product.title}</p>
+                        <p className="text-xs text-muted-foreground truncate max-w-xs">{product.checkoutUrl}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setEditingProduct(product)}>
+                        <Edit3 className="h-4 w-4" />
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => removeProduct(product.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -220,7 +320,7 @@ export default function AdminPage() {
                       <Save className="h-4 w-4 mr-2" /> Salvar
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">Esta senha é compartilhada com todos os novos usuários registrados.</p>
+                  <p className="text-xs text-muted-foreground">Senha atual necessária para login dos clientes.</p>
                 </div>
               </CardContent>
             </Card>
@@ -273,6 +373,53 @@ export default function AdminPage() {
               <div className="flex gap-2 justify-end pt-4">
                 <Button variant="ghost" onClick={() => setEditingVideo(null)}>Cancelar</Button>
                 <Button onClick={handleUpdateVideo} className="bg-primary text-primary-foreground font-bold">Salvar Alterações</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {editingProduct && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <Card className="w-full max-w-2xl border-primary/20 bg-card">
+            <CardHeader>
+              <CardTitle>Editar Produto</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Título</Label>
+                  <Input 
+                    value={editingProduct.title} 
+                    onChange={(e) => setEditingProduct({ ...editingProduct, title: e.target.value })} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Checkout URL</Label>
+                  <Input 
+                    value={editingProduct.checkoutUrl} 
+                    onChange={(e) => setEditingProduct({ ...editingProduct, checkoutUrl: e.target.value })} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Palavra-chave para Imagem</Label>
+                  <Input 
+                    value={editingProduct.imageHint} 
+                    onChange={(e) => setEditingProduct({ ...editingProduct, imageHint: e.target.value })} 
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Descrição</Label>
+                <Textarea 
+                  value={editingProduct.description} 
+                  onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })} 
+                  rows={4}
+                />
+              </div>
+              <div className="flex gap-2 justify-end pt-4">
+                <Button variant="ghost" onClick={() => setEditingProduct(null)}>Cancelar</Button>
+                <Button onClick={handleUpdateProduct} className="bg-primary text-primary-foreground font-bold">Salvar Alterações</Button>
               </div>
             </CardContent>
           </Card>

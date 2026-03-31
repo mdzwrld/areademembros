@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,6 +7,14 @@ export interface Video {
   title: string;
   youtubeUrl: string;
   necessaryLinks: string;
+}
+
+export interface Product {
+  id: string;
+  title: string;
+  description: string;
+  checkoutUrl: string;
+  imageHint: string;
 }
 
 export interface Settings {
@@ -34,26 +41,29 @@ export const INITIAL_VIDEOS: Video[] = [
 export function useStore() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [videos, setVideos] = useState<Video[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<string[]>([]);
   const [settings, setSettings] = useState<Settings>(INITIAL_SETTINGS);
 
   useEffect(() => {
     const storedVideos = localStorage.getItem("ldr_videos");
+    const storedProducts = localStorage.getItem("ldr_products");
     const storedUsers = localStorage.getItem("ldr_users");
     const storedSettings = localStorage.getItem("ldr_settings");
 
     if (storedVideos) setVideos(JSON.parse(storedVideos));
     else setVideos(INITIAL_VIDEOS);
 
+    if (storedProducts) setProducts(JSON.parse(storedProducts));
+    else setProducts([]);
+
     if (storedUsers) setUsers(JSON.parse(storedUsers));
     
     if (storedSettings) {
       const parsed = JSON.parse(storedSettings);
-      // Forçamos a atualização se as credenciais mestras mudarem no código
       if (
         parsed.adminUser !== INITIAL_SETTINGS.adminUser || 
-        parsed.adminPassword !== INITIAL_SETTINGS.adminPassword ||
-        parsed.globalPassword === "123456" // Reseta se ainda estiver na senha antiga de exemplo
+        parsed.adminPassword !== INITIAL_SETTINGS.adminPassword
       ) {
         setSettings(INITIAL_SETTINGS);
       } else {
@@ -69,10 +79,11 @@ export function useStore() {
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem("ldr_videos", JSON.stringify(videos));
+      localStorage.setItem("ldr_products", JSON.stringify(products));
       localStorage.setItem("ldr_users", JSON.stringify(users));
       localStorage.setItem("ldr_settings", JSON.stringify(settings));
     }
-  }, [videos, users, settings, isLoaded]);
+  }, [videos, products, users, settings, isLoaded]);
 
   const addVideo = (v: Omit<Video, "id">) => {
     setVideos([...videos, { ...v, id: Math.random().toString(36).substr(2, 9) }]);
@@ -84,6 +95,18 @@ export function useStore() {
 
   const removeVideo = (id: string) => {
     setVideos(videos.filter((v) => v.id !== id));
+  };
+
+  const addProduct = (p: Omit<Product, "id">) => {
+    setProducts([...products, { ...p, id: Math.random().toString(36).substr(2, 9) }]);
+  };
+
+  const updateProduct = (id: string, updated: Partial<Product>) => {
+    setProducts(products.map((p) => (p.id === id ? { ...p, ...updated } : p)));
+  };
+
+  const removeProduct = (id: string) => {
+    setProducts(products.filter((p) => p.id !== id));
   };
 
   const registerUser = (email: string) => {
@@ -99,11 +122,15 @@ export function useStore() {
   return {
     isLoaded,
     videos,
+    products,
     users,
     settings,
     addVideo,
     updateVideo,
     removeVideo,
+    addProduct,
+    updateProduct,
+    removeProduct,
     registerUser,
     updateGlobalPassword,
   };
