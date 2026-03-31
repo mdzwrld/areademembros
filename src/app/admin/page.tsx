@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, Edit3, Save, Sparkles, Users, Video as VideoIcon, Settings as SettingsIcon, LogOut, ShoppingBag } from "lucide-react";
+import { Plus, Trash2, Edit3, Save, Sparkles, Users, Video as VideoIcon, Settings as SettingsIcon, LogOut, ShoppingBag, ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { suggestVideoLinks } from "@/ai/flows/admin-video-link-suggester";
 
@@ -22,7 +22,7 @@ export default function AdminPage() {
   const [newVideo, setNewVideo] = useState({ title: "", youtubeUrl: "", necessaryLinks: "" });
   
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [newProduct, setNewProduct] = useState({ title: "", description: "", checkoutUrl: "", imageHint: "discord" });
+  const [newProduct, setNewProduct] = useState({ title: "", description: "", checkoutUrl: "", imageHint: "discord", imageUrl: "" });
 
   const [globalPass, setGlobalPass] = useState("");
   const [suggesting, setSuggesting] = useState(false);
@@ -58,7 +58,7 @@ export default function AdminPage() {
     e.preventDefault();
     if (!newProduct.title || !newProduct.checkoutUrl) return;
     addProduct(newProduct);
-    setNewProduct({ title: "", description: "", checkoutUrl: "", imageHint: "discord" });
+    setNewProduct({ title: "", description: "", checkoutUrl: "", imageHint: "discord", imageUrl: "" });
     toast({ title: "Produto adicionado com sucesso!" });
   };
 
@@ -230,7 +230,15 @@ export default function AdminPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Palavra-chave para Imagem (IA)</Label>
+                      <Label>URL da Imagem (Opcional)</Label>
+                      <Input 
+                        value={newProduct.imageUrl} 
+                        onChange={(e) => setNewProduct({ ...newProduct, imageUrl: e.target.value })} 
+                        placeholder="https://exemplo.com/imagem.png"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Palavra-chave para Imagem IA (Caso não tenha URL)</Label>
                       <Input 
                         value={newProduct.imageHint} 
                         onChange={(e) => setNewProduct({ ...newProduct, imageHint: e.target.value })} 
@@ -260,8 +268,12 @@ export default function AdminPage() {
                 <Card key={product.id} className="border-border bg-card">
                   <CardContent className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="bg-muted p-2 rounded">
-                        <ShoppingBag className="h-6 w-6 text-primary" />
+                      <div className="bg-muted p-2 rounded relative w-12 h-12 overflow-hidden">
+                        {product.imageUrl ? (
+                          <img src={product.imageUrl} alt={product.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <ShoppingBag className="h-full w-full p-2 text-primary" />
+                        )}
                       </div>
                       <div>
                         <p className="font-bold">{product.title}</p>
@@ -402,7 +414,14 @@ export default function AdminPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Palavra-chave para Imagem</Label>
+                  <Label>URL da Imagem</Label>
+                  <Input 
+                    value={editingProduct.imageUrl || ""} 
+                    onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Palavra-chave para Imagem IA</Label>
                   <Input 
                     value={editingProduct.imageHint} 
                     onChange={(e) => setEditingProduct({ ...editingProduct, imageHint: e.target.value })} 

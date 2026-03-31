@@ -15,6 +15,7 @@ export interface Product {
   description: string;
   checkoutUrl: string;
   imageHint: string;
+  imageUrl?: string;
 }
 
 export interface Settings {

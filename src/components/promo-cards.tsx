@@ -25,11 +25,12 @@ export function PromoCards() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((item) => {
+          const imgSrc = item.imageUrl || `https://picsum.photos/seed/${item.id}/400/250`;
           return (
             <Card key={item.id} className="overflow-hidden border-border bg-card hover:shadow-xl transition-all hover:scale-[1.02] flex flex-col">
               <div className="relative h-48 w-full bg-muted">
                 <Image 
-                  src={`https://picsum.photos/seed/${item.id}/400/250`} 
+                  src={imgSrc} 
                   alt={item.title} 
                   fill 
                   className="object-cover" 
