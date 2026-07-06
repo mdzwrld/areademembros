@@ -46,11 +46,10 @@ export default function LoginPage() {
       return;
     }
 
-    // A senha agora é validada contra o valor no Firestore (settings.globalPassword)
     if (password === settings.globalPassword) {
       registerUser(email);
       localStorage.setItem("ldr_auth", JSON.stringify({ email }));
-      toast({ title: "Acesso autorizado!", description: "Bem-vindo à área de membros Cloud." });
+      toast({ title: "Acesso autorizado!", description: "Bem-vindo à área de membros." });
       router.push("/members");
     } else {
       toast({ title: "Senha incorreta", description: "A senha inserida não é válida.", variant: "destructive" });
@@ -67,17 +66,19 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 bg-[url('https://picsum.photos/seed/bg/1920/1080')] bg-cover bg-center">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+    <main className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
+      {/* Círculos de gradiente leves para performance em vez de imagem pesada */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/20 rounded-full blur-[120px]" />
       
-      <Card className="w-full max-w-md relative z-10 border-primary/20 bg-card/95 shadow-2xl">
+      <Card className="w-full max-w-md relative z-10 border-primary/20 bg-card/80 backdrop-blur-xl shadow-2xl">
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-4">
             <ShieldCheck className="h-8 w-8 text-primary" />
           </div>
           <CardTitle className="text-3xl font-headline font-bold text-primary">Lucro Discord Rápido</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Área de membros sincronizada na nuvem.
+            Área de membros oficial.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -93,7 +94,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-background/50"
+                className="bg-background/50 border-border/50"
               />
             </div>
             <div className="space-y-2">
@@ -103,14 +104,14 @@ export default function LoginPage() {
               <Input 
                 id="password" 
                 type="password" 
-                placeholder="Insira sua senha: Dc2026gp" 
+                placeholder="Insira sua senha" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-background/50"
+                className="bg-background/50 border-border/50"
               />
             </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 font-bold" disabled={loading}>
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 font-bold shadow-lg shadow-primary/20" disabled={loading}>
               {loading ? "Validando..." : "Entrar Agora"}
             </Button>
           </form>

@@ -3,7 +3,7 @@
 
 import { useCollection, useDoc, useFirestore } from "@/firebase";
 import { collection, doc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 
@@ -31,8 +31,14 @@ export interface Settings {
 
 export function useStore() {
   const firestore = useFirestore();
+  const [forceLoaded, setForceLoaded] = useState(false);
 
-  // Queries memorizadas para evitar re-renderizações infinitas
+  // Fallback de segurança para evitar carregamento infinito em conexões lentas
+  useEffect(() => {
+    const timer = setTimeout(() => setForceLoaded(true), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const videosQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, "videos"), orderBy("createdAt", "desc"));
@@ -63,7 +69,7 @@ export function useStore() {
   const addVideo = (v: Omit<Video, "id">) => {
     if (!firestore) return;
     const newDoc = doc(collection(firestore, "videos"));
-    setDoc(newDoc, { ...v, createdAt: serverTimestamp() }).catch(async (e) => {
+    setDoc(newDoc, { ...v, createdAt: serverTimestamp() }).catch((e) => {
       errorEmitter.emit("permission-error", new FirestorePermissionError({
         path: "videos",
         operation: "create",
@@ -74,7 +80,7 @@ export function useStore() {
 
   const updateVideo = (id: string, updated: Partial<Video>) => {
     if (!firestore) return;
-    setDoc(doc(firestore, "videos", id), updated, { merge: true }).catch(async (e) => {
+    setDoc(doc(firestore, "videos", id), updated, { merge: true }).catch((e) => {
       errorEmitter.emit("permission-error", new FirestorePermissionError({
         path: `videos/${id}`,
         operation: "update",
@@ -85,7 +91,7 @@ export function useStore() {
 
   const removeVideo = (id: string) => {
     if (!firestore) return;
-    deleteDoc(doc(firestore, "videos", id)).catch(async (e) => {
+    deleteDoc(doc(firestore, "videos", id)).catch((e) => {
       errorEmitter.emit("permission-error", new FirestorePermissionError({
         path: `videos/${id}`,
         operation: "delete"
@@ -96,7 +102,7 @@ export function useStore() {
   const addProduct = (p: Omit<Product, "id">) => {
     if (!firestore) return;
     const newDoc = doc(collection(firestore, "products"));
-    setDoc(newDoc, { ...p, createdAt: serverTimestamp() }).catch(async (e) => {
+    setDoc(newDoc, { ...p, createdAt: serverTimestamp() }).catch((e) => {
       errorEmitter.emit("permission-error", new FirestorePermissionError({
         path: "products",
         operation: "create",
@@ -107,7 +113,7 @@ export function useStore() {
 
   const updateProduct = (id: string, updated: Partial<Product>) => {
     if (!firestore) return;
-    setDoc(doc(firestore, "products", id), updated, { merge: true }).catch(async (e) => {
+    setDoc(doc(firestore, "products", id), updated, { merge: true }).catch((e) => {
       errorEmitter.emit("permission-error", new FirestorePermissionError({
         path: `products/${id}`,
         operation: "update",
@@ -118,7 +124,7 @@ export function useStore() {
 
   const removeProduct = (id: string) => {
     if (!firestore) return;
-    deleteDoc(doc(firestore, "products", id)).catch(async (e) => {
+    deleteDoc(doc(firestore, "products", id)).catch((e) => {
       errorEmitter.emit("permission-error", new FirestorePermissionError({
         path: `products/${id}`,
         operation: "delete"
@@ -129,7 +135,7 @@ export function useStore() {
   const registerUser = (email: string) => {
     if (!firestore) return;
     const userDoc = doc(firestore, "users", email.replace(/\./g, "_"));
-    setDoc(userDoc, { email, registeredAt: serverTimestamp() }).catch(async (e) => {
+    setDoc(userDoc, { email, registeredAt: serverTimestamp() }).catch((e) => {
       errorEmitter.emit("permission-error", new FirestorePermissionError({
         path: `users/${email}`,
         operation: "create",
@@ -140,7 +146,7 @@ export function useStore() {
 
   const updateGlobalPassword = (newPass: string) => {
     if (!firestore) return;
-    setDoc(doc(firestore, "settings", "global"), { globalPassword: newPass }, { merge: true }).catch(async (e) => {
+    setDoc(doc(firestore, "settings", "global"), { globalPassword: newPass }, { merge: true }).catch((e) => {
       errorEmitter.emit("permission-error", new FirestorePermissionError({
         path: "settings/global",
         operation: "update",
@@ -150,7 +156,7 @@ export function useStore() {
   };
 
   return {
-    isLoaded: !videosLoading && !productsLoading && !settingsLoading,
+    isLoaded: forceLoaded || (!videosLoading && !productsLoading && !settingsLoading),
     videos: videos || [],
     products: products || [],
     users: users || [],
