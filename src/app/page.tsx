@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { ShieldCheck, Mail, Lock } from "lucide-react";
+import { ShieldCheck, Mail, Lock, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 
@@ -37,7 +37,6 @@ export default function LoginPage() {
       return;
     }
 
-    // Se o usuário tentar entrar sem senha, mostramos um aviso útil
     if (password === "") {
       toast({ 
         title: "Senha necessária", 
@@ -47,10 +46,11 @@ export default function LoginPage() {
       return;
     }
 
+    // A senha agora é validada contra o valor no Firestore (settings.globalPassword)
     if (password === settings.globalPassword) {
-      registerUser(email); // Registra o email no sistema
+      registerUser(email);
       localStorage.setItem("ldr_auth", JSON.stringify({ email }));
-      toast({ title: "Acesso autorizado!", description: "Bem-vindo à área de membros." });
+      toast({ title: "Acesso autorizado!", description: "Bem-vindo à área de membros Cloud." });
       router.push("/members");
     } else {
       toast({ title: "Senha incorreta", description: "A senha inserida não é válida.", variant: "destructive" });
@@ -58,7 +58,13 @@ export default function LoginPage() {
     setLoading(false);
   };
 
-  if (!isLoaded) return null;
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-[url('https://picsum.photos/seed/bg/1920/1080')] bg-cover bg-center">
@@ -71,7 +77,7 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-3xl font-headline font-bold text-primary">Lucro Discord Rápido</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Acesse sua área exclusiva de membros.
+            Área de membros sincronizada na nuvem.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -97,7 +103,7 @@ export default function LoginPage() {
               <Input 
                 id="password" 
                 type="password" 
-                placeholder="Insira sua senha" 
+                placeholder="Insira sua senha: Dc2026gp" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -105,7 +111,7 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 font-bold" disabled={loading}>
-              {loading ? "Processando..." : "Entrar Agora"}
+              {loading ? "Validando..." : "Entrar Agora"}
             </Button>
           </form>
         </CardContent>

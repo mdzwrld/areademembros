@@ -1,12 +1,18 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCollection, useDoc, useFirestore } from "@/firebase";
+import { collection, doc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
+import { useMemo } from "react";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 export interface Video {
   id: string;
   title: string;
   youtubeUrl: string;
   necessaryLinks: string;
+  createdAt?: any;
 }
 
 export interface Product {
@@ -16,116 +22,139 @@ export interface Product {
   checkoutUrl: string;
   imageHint: string;
   imageUrl?: string;
+  createdAt?: any;
 }
 
 export interface Settings {
   globalPassword: string;
-  adminUser: string;
-  adminPassword: string;
 }
 
-export const INITIAL_SETTINGS: Settings = {
-  globalPassword: "Dc2026gp",
-  adminUser: "midsz",
-  adminPassword: "012706",
-};
-
-export const INITIAL_VIDEOS: Video[] = [
-  {
-    id: "1",
-    title: "Como começar no Discord",
-    youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    necessaryLinks: "Link do Discord: https://discord.gg/example\nGuia de início: https://example.com/guide",
-  },
-];
-
 export function useStore() {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [users, setUsers] = useState<string[]>([]);
-  const [settings, setSettings] = useState<Settings>(INITIAL_SETTINGS);
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    const storedVideos = localStorage.getItem("ldr_videos");
-    const storedProducts = localStorage.getItem("ldr_products");
-    const storedUsers = localStorage.getItem("ldr_users");
-    const storedSettings = localStorage.getItem("ldr_settings");
+  // Queries memorizadas para evitar re-renderizações infinitas
+  const videosQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, "videos"), orderBy("createdAt", "desc"));
+  }, [firestore]);
 
-    if (storedVideos) setVideos(JSON.parse(storedVideos));
-    else setVideos(INITIAL_VIDEOS);
+  const productsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, "products"), orderBy("createdAt", "desc"));
+  }, [firestore]);
 
-    if (storedProducts) setProducts(JSON.parse(storedProducts));
-    else setProducts([]);
+  const usersQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, "users"), orderBy("registeredAt", "desc"));
+  }, [firestore]);
 
-    if (storedUsers) setUsers(JSON.parse(storedUsers));
-    
-    if (storedSettings) {
-      const parsed = JSON.parse(storedSettings);
-      if (
-        parsed.adminUser !== INITIAL_SETTINGS.adminUser || 
-        parsed.adminPassword !== INITIAL_SETTINGS.adminPassword
-      ) {
-        setSettings(INITIAL_SETTINGS);
-      } else {
-        setSettings(parsed);
-      }
-    } else {
-      setSettings(INITIAL_SETTINGS);
-    }
+  const settingsDocRef = useMemo(() => {
+    if (!firestore) return null;
+    return doc(firestore, "settings", "global");
+  }, [firestore]);
 
-    setIsLoaded(true);
-  }, []);
+  const { data: videos, loading: videosLoading } = useCollection<Video>(videosQuery);
+  const { data: products, loading: productsLoading } = useCollection<Product>(productsQuery);
+  const { data: usersData, loading: usersLoading } = useCollection<{email: string}>(usersQuery);
+  const { data: settings, loading: settingsLoading } = useDoc<Settings>(settingsDocRef);
 
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem("ldr_videos", JSON.stringify(videos));
-      localStorage.setItem("ldr_products", JSON.stringify(products));
-      localStorage.setItem("ldr_users", JSON.stringify(users));
-      localStorage.setItem("ldr_settings", JSON.stringify(settings));
-    }
-  }, [videos, products, users, settings, isLoaded]);
+  const users = useMemo(() => usersData?.map(u => u.email) || [], [usersData]);
 
   const addVideo = (v: Omit<Video, "id">) => {
-    setVideos([...videos, { ...v, id: Math.random().toString(36).substr(2, 9) }]);
+    if (!firestore) return;
+    const newDoc = doc(collection(firestore, "videos"));
+    setDoc(newDoc, { ...v, createdAt: serverTimestamp() }).catch(async (e) => {
+      errorEmitter.emit("permission-error", new FirestorePermissionError({
+        path: "videos",
+        operation: "create",
+        requestResourceData: v
+      }));
+    });
   };
 
   const updateVideo = (id: string, updated: Partial<Video>) => {
-    setVideos(videos.map((v) => (v.id === id ? { ...v, ...updated } : v)));
+    if (!firestore) return;
+    setDoc(doc(firestore, "videos", id), updated, { merge: true }).catch(async (e) => {
+      errorEmitter.emit("permission-error", new FirestorePermissionError({
+        path: `videos/${id}`,
+        operation: "update",
+        requestResourceData: updated
+      }));
+    });
   };
 
   const removeVideo = (id: string) => {
-    setVideos(videos.filter((v) => v.id !== id));
+    if (!firestore) return;
+    deleteDoc(doc(firestore, "videos", id)).catch(async (e) => {
+      errorEmitter.emit("permission-error", new FirestorePermissionError({
+        path: `videos/${id}`,
+        operation: "delete"
+      }));
+    });
   };
 
   const addProduct = (p: Omit<Product, "id">) => {
-    setProducts([...products, { ...p, id: Math.random().toString(36).substr(2, 9) }]);
+    if (!firestore) return;
+    const newDoc = doc(collection(firestore, "products"));
+    setDoc(newDoc, { ...p, createdAt: serverTimestamp() }).catch(async (e) => {
+      errorEmitter.emit("permission-error", new FirestorePermissionError({
+        path: "products",
+        operation: "create",
+        requestResourceData: p
+      }));
+    });
   };
 
   const updateProduct = (id: string, updated: Partial<Product>) => {
-    setProducts(products.map((p) => (p.id === id ? { ...p, ...updated } : p)));
+    if (!firestore) return;
+    setDoc(doc(firestore, "products", id), updated, { merge: true }).catch(async (e) => {
+      errorEmitter.emit("permission-error", new FirestorePermissionError({
+        path: `products/${id}`,
+        operation: "update",
+        requestResourceData: updated
+      }));
+    });
   };
 
   const removeProduct = (id: string) => {
-    setProducts(products.filter((p) => p.id !== id));
+    if (!firestore) return;
+    deleteDoc(doc(firestore, "products", id)).catch(async (e) => {
+      errorEmitter.emit("permission-error", new FirestorePermissionError({
+        path: `products/${id}`,
+        operation: "delete"
+      }));
+    });
   };
 
   const registerUser = (email: string) => {
-    if (!users.includes(email)) {
-      setUsers([...users, email]);
-    }
+    if (!firestore) return;
+    const userDoc = doc(firestore, "users", email.replace(/\./g, "_"));
+    setDoc(userDoc, { email, registeredAt: serverTimestamp() }).catch(async (e) => {
+      errorEmitter.emit("permission-error", new FirestorePermissionError({
+        path: `users/${email}`,
+        operation: "create",
+        requestResourceData: { email }
+      }));
+    });
   };
 
   const updateGlobalPassword = (newPass: string) => {
-    setSettings({ ...settings, globalPassword: newPass });
+    if (!firestore) return;
+    setDoc(doc(firestore, "settings", "global"), { globalPassword: newPass }, { merge: true }).catch(async (e) => {
+      errorEmitter.emit("permission-error", new FirestorePermissionError({
+        path: "settings/global",
+        operation: "update",
+        requestResourceData: { globalPassword: newPass }
+      }));
+    });
   };
 
   return {
-    isLoaded,
-    videos,
-    products,
-    users,
-    settings,
+    isLoaded: !videosLoading && !productsLoading && !settingsLoading,
+    videos: videos || [],
+    products: products || [],
+    users: users || [],
+    settings: settings || { globalPassword: "Dc2026gp" },
     addVideo,
     updateVideo,
     removeVideo,

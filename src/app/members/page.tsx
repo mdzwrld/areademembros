@@ -7,7 +7,7 @@ import { useStore } from "@/app/lib/store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PromoCards } from "@/components/promo-cards";
-import { LogOut, ExternalLink, PlayCircle } from "lucide-react";
+import { LogOut, ExternalLink, PlayCircle, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 
@@ -43,7 +43,16 @@ export default function MembersPage() {
     }
   };
 
-  if (!isLoaded || !user) return null;
+  if (!user) return null;
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="text-xl font-headline font-bold text-primary animate-pulse">Carregando Treinamentos...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -62,15 +71,15 @@ export default function MembersPage() {
       <main className="max-w-4xl mx-auto py-12 px-4">
         <div className="text-center mb-16">
           <h2 className="text-5xl md:text-6xl font-headline font-bold mb-4 tracking-tighter">
-            Lucro Discord Rápido
+            Área de Membros
           </h2>
-          <p className="text-muted-foreground text-lg">Assista aos treinamentos exclusivos e utilize os links abaixo para maximizar seus resultados.</p>
+          <p className="text-muted-foreground text-lg">Assista aos treinamentos atualizados em tempo real.</p>
         </div>
 
         <section className="space-y-12">
           {videos.length === 0 ? (
             <Card className="border-dashed py-12 text-center text-muted-foreground">
-              <p>Nenhum vídeo disponível no momento.</p>
+              <p>Nenhum vídeo publicado no momento.</p>
             </Card>
           ) : (
             videos.map((video) => (
@@ -113,7 +122,7 @@ export default function MembersPage() {
       </div>
 
       <footer className="py-8 border-t border-border/40 text-center text-muted-foreground text-xs flex flex-col items-center gap-2">
-        <p>© 2024 Lucro Discord Rápido. Todos os direitos reservados.</p>
+        <p>© 2024 Lucro Discord Rápido. Sincronizado com Cloud Firestore.</p>
         <Link href="/admin/login" className="text-muted-foreground/30 hover:text-primary transition-colors">
           Painel Admin
         </Link>

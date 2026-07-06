@@ -1,0 +1,70 @@
+
+{
+  "entities": {
+    "Video": {
+      "title": "Video",
+      "description": "Conteúdo de vídeo para a área de membros",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "youtubeUrl": { "type": "string" },
+        "necessaryLinks": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "youtubeUrl"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Produtos/Fornecedores recomendados",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "checkoutUrl": { "type": "string" },
+        "imageHint": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "checkoutUrl"]
+    },
+    "User": {
+      "title": "User",
+      "description": "Registro de e-mails que acessaram o sistema",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "registeredAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Configurações globais do sistema",
+      "type": "object",
+      "properties": {
+        "globalPassword": { "type": "string" }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "/videos/{videoId}": {
+      "schema": "Video",
+      "description": "Coleção de vídeos de treinamento"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Coleção de produtos/fornecedores"
+    },
+    "/users/{email}": {
+      "schema": "User",
+      "description": "Lista de e-mails registrados"
+    },
+    "/settings/global": {
+      "schema": "Settings",
+      "description": "Configurações globais como senha de acesso"
+    }
+  }
+}

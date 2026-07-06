@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, Edit3, Save, Sparkles, Users, Video as VideoIcon, Settings as SettingsIcon, LogOut, ShoppingBag, ImageIcon } from "lucide-react";
+import { Plus, Trash2, Edit3, Save, Sparkles, Users, Video as VideoIcon, Settings as SettingsIcon, LogOut, ShoppingBag, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { suggestVideoLinks } from "@/ai/flows/admin-video-link-suggester";
 
@@ -35,7 +36,7 @@ export default function AdminPage() {
   }, [router]);
 
   useEffect(() => {
-    if (settings.globalPassword) setGlobalPass(settings.globalPassword);
+    if (settings?.globalPassword) setGlobalPass(settings.globalPassword);
   }, [settings]);
 
   const handleAddVideo = (e: React.FormEvent) => {
@@ -43,7 +44,7 @@ export default function AdminPage() {
     if (!newVideo.title || !newVideo.youtubeUrl) return;
     addVideo(newVideo);
     setNewVideo({ title: "", youtubeUrl: "", necessaryLinks: "" });
-    toast({ title: "Vídeo adicionado com sucesso!" });
+    toast({ title: "Vídeo publicado na área de membros!" });
   };
 
   const handleUpdateVideo = (e: React.FormEvent) => {
@@ -51,7 +52,7 @@ export default function AdminPage() {
     if (!editingVideo) return;
     updateVideo(editingVideo.id, editingVideo);
     setEditingVideo(null);
-    toast({ title: "Vídeo atualizado!" });
+    toast({ title: "Vídeo atualizado com sucesso!" });
   };
 
   const handleAddProduct = (e: React.FormEvent) => {
@@ -59,7 +60,7 @@ export default function AdminPage() {
     if (!newProduct.title || !newProduct.checkoutUrl) return;
     addProduct(newProduct);
     setNewProduct({ title: "", description: "", checkoutUrl: "", imageHint: "discord", imageUrl: "" });
-    toast({ title: "Produto adicionado com sucesso!" });
+    toast({ title: "Produto publicado com sucesso!" });
   };
 
   const handleUpdateProduct = (e: React.FormEvent) => {
@@ -72,7 +73,7 @@ export default function AdminPage() {
 
   const handleUpdatePass = () => {
     updateGlobalPassword(globalPass);
-    toast({ title: "Senha global atualizada!" });
+    toast({ title: "Senha global atualizada no banco de dados!" });
   };
 
   const handleSuggestLinks = async (title: string, desc: string, target: 'new' | 'edit') => {
@@ -92,13 +93,20 @@ export default function AdminPage() {
     }
   };
 
-  if (!isLoaded) return null;
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-muted-foreground animate-pulse">Sincronizando com Firestore...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card p-4 flex justify-between items-center sticky top-0 z-50">
         <h1 className="text-xl font-headline font-bold text-secondary flex items-center gap-2">
-          <SettingsIcon className="h-5 w-5" /> Painel Admin
+          <SettingsIcon className="h-5 w-5" /> Painel Admin <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest">Firestore Live</span>
         </h1>
         <Button variant="ghost" size="sm" onClick={() => { localStorage.removeItem("ldr_admin_auth"); router.push("/admin/login"); }}>
           <LogOut className="h-4 w-4 mr-2" /> Sair
@@ -125,8 +133,8 @@ export default function AdminPage() {
           <TabsContent value="videos" className="space-y-6">
             <Card className="border-border bg-card">
               <CardHeader>
-                <CardTitle className="font-headline">Adicionar Novo Vídeo</CardTitle>
-                <CardDescription>Preencha os dados abaixo para publicar um novo conteúdo.</CardDescription>
+                <CardTitle className="font-headline">Publicar Novo Vídeo</CardTitle>
+                <CardDescription>O conteúdo aparecerá instantaneamente para todos os membros.</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleAddVideo} className="space-y-4">
@@ -170,14 +178,14 @@ export default function AdminPage() {
                     />
                   </div>
                   <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
-                    <Plus className="h-4 w-4 mr-2" /> Adicionar Vídeo
+                    <Plus className="h-4 w-4 mr-2" /> Publicar Vídeo
                   </Button>
                 </form>
               </CardContent>
             </Card>
 
             <div className="grid grid-cols-1 gap-4">
-              <h3 className="text-lg font-headline font-bold">Vídeos Existentes</h3>
+              <h3 className="text-lg font-headline font-bold">Vídeos Online ({videos.length})</h3>
               {videos.map(video => (
                 <Card key={video.id} className="border-border bg-card">
                   <CardContent className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -207,8 +215,8 @@ export default function AdminPage() {
           <TabsContent value="products" className="space-y-6">
             <Card className="border-border bg-card">
               <CardHeader>
-                <CardTitle className="font-headline">Adicionar Novo Produto (Fornecedor)</CardTitle>
-                <CardDescription>Crie um card de oferta com link direto para o checkout.</CardDescription>
+                <CardTitle className="font-headline">Publicar Novo Produto (Fornecedor)</CardTitle>
+                <CardDescription>Sincronizado automaticamente com a nuvem.</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleAddProduct} className="space-y-4">
@@ -256,14 +264,14 @@ export default function AdminPage() {
                     />
                   </div>
                   <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
-                    <Plus className="h-4 w-4 mr-2" /> Adicionar Produto
+                    <Plus className="h-4 w-4 mr-2" /> Publicar Produto
                   </Button>
                 </form>
               </CardContent>
             </Card>
 
             <div className="grid grid-cols-1 gap-4">
-              <h3 className="text-lg font-headline font-bold">Produtos Existentes</h3>
+              <h3 className="text-lg font-headline font-bold">Produtos Online ({products.length})</h3>
               {products.map(product => (
                 <Card key={product.id} className="border-border bg-card">
                   <CardContent className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -297,18 +305,18 @@ export default function AdminPage() {
           <TabsContent value="users">
             <Card className="border-border bg-card">
               <CardHeader>
-                <CardTitle className="font-headline">Emails Cadastrados</CardTitle>
-                <CardDescription>Lista de todos os usuários que acessaram o sistema.</CardDescription>
+                <CardTitle className="font-headline">Usuários Registrados (Cloud)</CardTitle>
+                <CardDescription>Lista de e-mails que realizaram login com a senha global.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="border rounded-md divide-y border-border">
                   {users.length === 0 ? (
-                    <p className="p-4 text-center text-muted-foreground">Nenhum usuário cadastrado.</p>
+                    <p className="p-4 text-center text-muted-foreground">Nenhum usuário registrado no Firestore.</p>
                   ) : (
                     users.map((email, idx) => (
                       <div key={idx} className="p-3 flex items-center justify-between hover:bg-muted/30 transition-colors">
                         <span className="text-sm font-medium">{email}</span>
-                        <span className="text-[10px] uppercase bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">Ativo</span>
+                        <span className="text-[10px] uppercase bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">Verificado</span>
                       </div>
                     ))
                   )}
@@ -320,19 +328,19 @@ export default function AdminPage() {
           <TabsContent value="settings">
             <Card className="border-border bg-card">
               <CardHeader>
-                <CardTitle className="font-headline">Segurança e Sistema</CardTitle>
-                <CardDescription>Configure a senha global que os usuários usam para o primeiro acesso.</CardDescription>
+                <CardTitle className="font-headline">Segurança Global</CardTitle>
+                <CardDescription>Esta senha é necessária para o primeiro acesso de qualquer cliente.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Senha Global Padrão</Label>
+                  <Label>Senha Global de Acesso</Label>
                   <div className="flex gap-2">
                     <Input value={globalPass} onChange={(e) => setGlobalPass(e.target.value)} type="text" />
                     <Button onClick={handleUpdatePass} className="bg-secondary text-secondary-foreground font-bold hover:bg-secondary/90">
-                      <Save className="h-4 w-4 mr-2" /> Salvar
+                      <Save className="h-4 w-4 mr-2" /> Atualizar Nuvem
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">Senha atual necessária para login dos clientes.</p>
+                  <p className="text-xs text-muted-foreground">Alterar esta senha afetará todos os novos acessos imediatamente.</p>
                 </div>
               </CardContent>
             </Card>
@@ -344,7 +352,7 @@ export default function AdminPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <Card className="w-full max-w-2xl border-primary/20 bg-card">
             <CardHeader>
-              <CardTitle>Editar Vídeo</CardTitle>
+              <CardTitle>Editar Vídeo Online</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -384,7 +392,7 @@ export default function AdminPage() {
               </div>
               <div className="flex gap-2 justify-end pt-4">
                 <Button variant="ghost" onClick={() => setEditingVideo(null)}>Cancelar</Button>
-                <Button onClick={handleUpdateVideo} className="bg-primary text-primary-foreground font-bold">Salvar Alterações</Button>
+                <Button onClick={handleUpdateVideo} className="bg-primary text-primary-foreground font-bold">Salvar na Nuvem</Button>
               </div>
             </CardContent>
           </Card>
@@ -395,7 +403,7 @@ export default function AdminPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <Card className="w-full max-w-2xl border-primary/20 bg-card">
             <CardHeader>
-              <CardTitle>Editar Produto</CardTitle>
+              <CardTitle>Editar Produto Online</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -438,7 +446,7 @@ export default function AdminPage() {
               </div>
               <div className="flex gap-2 justify-end pt-4">
                 <Button variant="ghost" onClick={() => setEditingProduct(null)}>Cancelar</Button>
-                <Button onClick={handleUpdateProduct} className="bg-primary text-primary-foreground font-bold">Salvar Alterações</Button>
+                <Button onClick={handleUpdateProduct} className="bg-primary text-primary-foreground font-bold">Salvar na Nuvem</Button>
               </div>
             </CardContent>
           </Card>
